@@ -1,0 +1,138 @@
+#
+# Author: Nick Murphy and Reed Kass-Mullet
+# nmurph03 and rkassm01
+# Comp40 Hw3: Locality
+# Due: October 12
+
+
+Total Time spent: 35 - 40 Hours
+
+Acknowledgements:
+Michael Kotlik, Isabella Urdahl, Ben London, Espresso's Pizza, 
+Sejal, Greg Aloupis <3
+
+_______________________________________________________________________________
+Part A: Improving Locality Through Blocking
+
+
+Architecture: We implemented the blocked UArray2 within our uarray2b.c,
+                which is represented as a UArray of UArrays. We found this
+                representation simple maintain throughout our programming. 
+                In order to rotate images, we initialize empty an UArray2b
+                to properly fill with the data from the inputted file. 
+                Our functions calc_Row and calc_Col find every index of a
+                given cell, both within the larger UArray2 and within
+                its block.  
+
+_______________________________________________________________________________
+Part B: Supporting Polymorphic manipulation of 2D Arrays
+
+
+Architecture: We implemented a2plain.c using the desired method suite and 
+                following the format of a2blocked.c. a2plain.c contains the
+                implementation of the functions necessary for the given 
+                uarray2b.h and uarray2b.c to work.  
+_________________________________________________________________
+Part C: ppmtrans
+
+
+Architecture: We implemented ppmtrans.c in line with the spec, 
+                utilizing the pre-written methods suite. Depending on
+                the rotation being called, a map call is made on the
+                inputted PPM to be written to a UArray2. By passing the methods
+                suite into our functions, we have access to the functions within
+                it. The rotation functions are called on every single pixel in the
+                image, putting them in their correct position in the UArray2. These
+                functions find the new index of the pixel and place it. Then, the
+                new image is printed. 
+
+                Our timing data is stored within Recorder.txt: mapping type,
+                rotation, total time and average time spent per pixel. 
+______________________________________________________________
+Part D: Analyzing Locality
+
+We used this basic 2D Array to formulate our answers to the table.
+1 2 3 4
+5 6 7 8
+9 10 11 12
+13 14 15 16
+We said that in row-major, this array looks like:
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+We said that in col-major, this array looks like:
+1 5 9 13 2 6 10 14 3 7 11 15 4 8 12 16
+We said that in block-major, this array looks like:
+1 2 5 6 3 4 7 8 9 10 13 14 11 12 1 16
+A 90-degree rotation would look like:
+13 9 5 1
+14 10 6 2
+15 11 7 3
+16 12 8 4
+A 180-degree rotation would look like:
+16 15 14 13
+12 11 10 9
+8 7 6 5
+4 3 2 1
+We know from class that cache miss for writes are more expensive for cache misses for reads.
+Therefore, it is better for a translation function to write a consecutive block in its entirety than for it to
+have to have to write to new memory every time through. Additionally, our UArray2 implementation is
+in row-major form, which alters our hypotheses.
+Looking at the 180-degree rotation, it is clear that col-major will be able to write consecutive blocks
+(consecutive elements in columns) in their entirety. Therefore, we predict it will have the best cache hit
+rate of the set. A 180-degree rotation using block major will be half as efficient, as there will be two
+cache misses for writes per block. This also goes for 90-degree rotations using block major. However, a
+180-degree rotation using row-major requires 3 cache misses per block, therefore it is significantly less
+efficient. 90-degree rotations using col major will also have 3 cache misses but they will be more
+efficient misses. Finally, 90 degree rotations using row major will be the least efficient due to their
+number of misses per accessed block of memory.
+All of our estimates are underestimates because our cache can size 
+_______________________________________________________________________________
+Part E: Measure and Explain improvements in Locality
+
+Small Image: 4 x 4
+Total
+        row             col             block
+================================================
+180     1931 ns         2128 ns         224909 ns
+================================================
+90      1982 ns         1924 ns         289061 ns
+
+Per pixel        
+        row             col             block
+================================================
+180     120.6875 ns     133 ns          14056 ns
+================================================
+90      123.875 ns      120.25 ns       18066 ns
+____________________________________________________________
+____________________________________________________________
+
+Medium Image:
+Total
+        row             col             block
+================================================
+180
+================================================
+90
+
+Per Pixel        
+        row             col             block
+================================================
+180
+================================================
+90
+____________________________________________________________
+____________________________________________________________
+
+Large Image: 512 x 512
+        row             col             block
+================================================
+180     16927477 ns     16658939 ns     27698343 ns
+================================================
+90      28253088 ns     9548341 ns      1250007470 ns
+Per Pixel
+        row             col             block
+================================================
+180     62.818481 ns    67.146076 ns    106.241005 ns
+================================================
+90      102.442631 ns   37.281040 ns    4768.400078 ns
+____________________________________________________________
+____________________________________________________________
